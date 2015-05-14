@@ -39,13 +39,13 @@ class Service(object):
         try:
             request = platform_pb2.Request().FromString(body)
         except DecodeError:
-            ch.basic_reject(requeue=False)
+            ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
             return
 
         # Invoke every handler that matches the routing key
         [handler(request) for handler in self.handlers[method.routing_key]]
 
-        ch.basic_ack(multiple=True)
+        ch.basic_ack(delivery_tag=method.delivery_tag, multiple=True)
 
     def run(self):
         if not len(self.handlers):
