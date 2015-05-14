@@ -13,3 +13,6 @@ class AmqpSubscriber(Subscriber):
     def subscribe(self, topic, callback):
         self.channel.queue_bind(exchange='amq.topic', queue=self.queue_name, routing_key=topic)
         self.channel.basic_consume(callback=callback, queue=self.queue_name, no_ack=False)
+
+    def run(self):
+        self.channel.start_consuming()

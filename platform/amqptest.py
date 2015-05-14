@@ -19,6 +19,7 @@ class MockChannel(object):
         self.queues = []
         self.binds = []
         self.consumes = []
+        self.started_consuming = False
 
     def basic_consume(self, **kwargs):
         self.consumes.append(kwargs)
@@ -34,3 +35,6 @@ class MockChannel(object):
 
     def queue_declare(self, **kwargs):
         self.queues.append(kwargs)
+
+    def start_consuming(self):
+        self.started_consuming = True

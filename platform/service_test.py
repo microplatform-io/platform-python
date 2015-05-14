@@ -30,10 +30,10 @@ class ServiceTestCase(unittest.TestCase):
         self.assertEqual(len(self.connection.channels[0].queues), 1)
         self.assertEqual(len(self.connection.channels[0].binds), 0)
 
-    def test_handle(self):
         # Initially, no handlers should exist on a service
         self.assertEqual(self.service.handlers, {})
 
+    def test_handle(self):
         handler_storage = {'requests': []}
 
         # Let's just pseudo-wrap a temporary function
@@ -59,9 +59,6 @@ class ServiceTestCase(unittest.TestCase):
         self.assertEqual(len(handler_storage['requests']), 1)
 
     def test_handle_callback(self):
-        # Initially, no handlers should exist on a service
-        self.assertEqual(self.service.handlers, {})
-
         routing_key = '%d_%d' % (platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST, )
 
         handler_storage = {'requests': []}
@@ -83,3 +80,18 @@ class ServiceTestCase(unittest.TestCase):
         self.assertEqual(len(handler_storage['requests']), 0)
         self.service.handle_callback(None, MockMethod(routing_key), None, request.SerializeToString())
         self.assertEqual(len(handler_storage['requests']), 1)
+
+    def test_run(self):
+        # Running a service without any handlers should raise an exception
+        with self.assertRaises(Service.NoHandlersDefined):
+            self.service.run()
+
+        self.service.handle(platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST)(lambda request: request)
+        self.assertEqual(len(self.connection.channels), 1)
+        self.assertEqual(len(self.connection.channels[0].queues), 1)
+        self.assertEqual(len(self.connection.channels[0].binds), 1)
+        self.assertEqual(self.connection.channels[0].started_consuming, False)
+
+        self.service.run()
+
+        self.assertEqual(self.connection.channels[0].started_consuming, True)

@@ -1,6 +1,9 @@
 import platform_pb2
 
 class Service(object):
+    class NoHandlersDefined(Exception):
+        pass
+
     def __init__(self, publisher, subscriber):
         self.publisher = publisher
         self.subscriber = subscriber
@@ -33,3 +36,9 @@ class Service(object):
 
         # Invoke every handler that matches the routing key
         [handler(request) for handler in self.handlers[method.routing_key]]
+
+    def run(self):
+        if not len(self.handlers):
+            raise Service.NoHandlersDefined('No handlers have been defined!')
+
+        self.subscriber.run()
