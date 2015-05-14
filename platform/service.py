@@ -1,10 +1,15 @@
 import platform_pb2
 
 class Service(object):
-    def __init__(self):
+    def __init__(self, publisher, subscriber):
+        self.publisher = publisher
+        self.subscriber = subscriber
         self.handlers = {}
 
     def handle(self, method, resource):
+        # def callback(ch, method, properties, body):
+        #     return self.handle_callback(ch, method, properties, body)
+
         def decorator(f):
             topic = '%d_%d' % (method, resource, )
 
@@ -12,6 +17,8 @@ class Service(object):
                 self.handlers[topic].append(f)
             else:
                 self.handlers[topic] = [f]
+
+            self.subscriber.subscribe(topic, self.handle_callback)
 
             return f
 
