@@ -1,3 +1,4 @@
+import os
 import pika
 
 class AmqpConnection(object):
@@ -12,3 +13,11 @@ class AmqpConnection(object):
 
     def channel(self):
         return self.connection.channel()
+
+def get_default_connection():
+    return AmqpConnection(
+        host        = os.environ.get('RABBITMQ_PORT_5672_TCP_ADDR', '127.0.0.1'),
+        port        = os.environ.get('RABBITMQ_PORT_5672_TCP_PORT', 5672),
+        user        = os.environ.get('RABBITMQ_USER', 'guest'),
+        password    = os.environ.get('RABBITMQ_PASS', 'guest')
+    )
