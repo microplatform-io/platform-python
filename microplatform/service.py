@@ -1,3 +1,4 @@
+from google.protobuf.message import DecodeError
 import platform_pb2
 
 class Service(object):
@@ -10,8 +11,10 @@ class Service(object):
         self.handlers = {}
 
     def handle(self, method, resource):
-        # def callback(ch, method, properties, body):
-        #     return self.handle_callback(ch, method, properties, body)
+        def callback(ch, method, properties, body):
+            return self.handle_callback(ch, method, properties, body)
+
+        print "subscribing to: %d_%d" % (method, resource, )
 
         def decorator(f):
             topic = '%d_%d' % (method, resource, )
@@ -21,21 +24,28 @@ class Service(object):
             else:
                 self.handlers[topic] = [f]
 
-            self.subscriber.subscribe(topic, self.handle_callback)
+            self.subscriber.subscribe(topic, callback)
 
             return f
 
         return decorator
 
     def handle_callback(self, ch, method, properties, body):
+        print "received message: %s" % (method, )
         if method.routing_key not in self.handlers:
             return
 
         # TODO(bmoyles0117): Might want to copy the request every time to make immutable
-        request = platform_pb2.Request().FromString(body)
+        try:
+            request = platform_pb2.Request().FromString(body)
+        except DecodeError:
+            ch.basic_reject(requeue=False)
+            return
 
         # Invoke every handler that matches the routing key
         [handler(request) for handler in self.handlers[method.routing_key]]
+
+        ch.basic_ack(multiple=True)
 
     def run(self):
         if not len(self.handlers):

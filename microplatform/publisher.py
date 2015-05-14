@@ -8,7 +8,7 @@ class AmqpPublisher(Publisher):
 
     def publish(self, topic, body):
         channel = self.connection.channel()
-        channel.basic_publish(
+        print "PUBLISHED", channel.basic_publish(
             exchange    = 'amq.topic', 
             routing_key = topic, 
             body        = body

@@ -20,12 +20,20 @@ class MockChannel(object):
         self.binds = []
         self.consumes = []
         self.started_consuming = False
+        self.basic_acks = []
+        self.basic_rejects = []
+
+    def basic_ack(self, **kwargs):
+        self.basic_acks.append(kwargs)
 
     def basic_consume(self, **kwargs):
         self.consumes.append(kwargs)
 
     def basic_publish(self, **kwargs):
         self.publishes.append(kwargs)
+
+    def basic_reject(self, **kwargs):
+        self.basic_rejects.append(kwargs)
 
     def exchange_declare(self, **kwargs):
         self.exchanges.append(kwargs)

@@ -71,15 +71,26 @@ class ServiceTestCase(unittest.TestCase):
 
         # An initial callback that has not been registered should not trigger the function
         self.assertEqual(len(handler_storage['requests']), 0)
-        self.service.handle_callback(None, MockMethod(routing_key), None, request.SerializeToString())
+        self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, request.SerializeToString())
         self.assertEqual(len(handler_storage['requests']), 0)
+        self.assertEqual(len(self.connection.channels[0].basic_acks), 0)
+        self.assertEqual(len(self.connection.channels[0].basic_rejects), 0)
 
         # Now let's register the handler, and call it again
         self.service.handle(platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST)(lambda request: handler_storage['requests'].append(request))
 
         self.assertEqual(len(handler_storage['requests']), 0)
-        self.service.handle_callback(None, MockMethod(routing_key), None, request.SerializeToString())
+        self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, request.SerializeToString())
         self.assertEqual(len(handler_storage['requests']), 1)
+        self.assertEqual(len(self.connection.channels[0].basic_acks), 1)
+        self.assertEqual(len(self.connection.channels[0].basic_rejects), 0)
+
+        # Running the handle callback with a bad payload should result in a reject
+        self.assertEqual(len(handler_storage['requests']), 1)
+        self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+        self.assertEqual(len(handler_storage['requests']), 1)
+        self.assertEqual(len(self.connection.channels[0].basic_acks), 1)
+        self.assertEqual(len(self.connection.channels[0].basic_rejects), 1)
 
     def test_run(self):
         # Running a service without any handlers should raise an exception
