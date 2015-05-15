@@ -9,4 +9,4 @@ publisher = microplatform.AmqpPublisher(connection)
 
 routing_key = '%d_%d' % (microplatform.GET, microplatform.DOCUMENTATION_LIST, )
 
-publisher.publish(routing_key, 'abc')
+publisher.publish(routing_key, microplatform.Request(body="123").SerializeToString())

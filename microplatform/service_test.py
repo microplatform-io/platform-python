@@ -2,6 +2,7 @@ import amqptest
 import platform_pb2
 import unittest
 
+from google.protobuf.message import DecodeError
 from .publisher import AmqpPublisher
 from .service import Service
 from .subscriber import AmqpSubscriber
@@ -9,6 +10,7 @@ from .subscriber import AmqpSubscriber
 class MockMethod(object):
     def __init__(self, routing_key):
         self.routing_key = routing_key
+        self.delivery_tag = 1
 
 class ServiceTestCase(unittest.TestCase):
     def setUp(self):
@@ -74,7 +76,7 @@ class ServiceTestCase(unittest.TestCase):
         self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, request.SerializeToString())
         self.assertEqual(len(handler_storage['requests']), 0)
         self.assertEqual(len(self.connection.channels[0].basic_acks), 0)
-        self.assertEqual(len(self.connection.channels[0].basic_rejects), 0)
+        self.assertEqual(len(self.connection.channels[0].basic_rejects), 1)
 
         # Now let's register the handler, and call it again
         self.service.handle(platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST)(lambda request: handler_storage['requests'].append(request))
@@ -83,14 +85,44 @@ class ServiceTestCase(unittest.TestCase):
         self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, request.SerializeToString())
         self.assertEqual(len(handler_storage['requests']), 1)
         self.assertEqual(len(self.connection.channels[0].basic_acks), 1)
-        self.assertEqual(len(self.connection.channels[0].basic_rejects), 0)
+        self.assertEqual(len(self.connection.channels[0].basic_rejects), 1)
 
         # Running the handle callback with a bad payload should result in a reject
         self.assertEqual(len(handler_storage['requests']), 1)
         self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')
         self.assertEqual(len(handler_storage['requests']), 1)
         self.assertEqual(len(self.connection.channels[0].basic_acks), 1)
-        self.assertEqual(len(self.connection.channels[0].basic_rejects), 1)
+        self.assertEqual(len(self.connection.channels[0].basic_rejects), 2)
+
+        # A callback that raises an exception should result in a reject with a requeue
+        def callback(request):
+            raise Exception("throwing exception")
+
+        self.service.handle(platform_pb2.GET, 3)(callback)
+
+        self.assertEqual(len(handler_storage['requests']), 1)
+        self.service.handle_callback(self.connection.channels[0], MockMethod("%d_%d" % (platform_pb2.GET, 3, )), None, request.SerializeToString())
+        self.assertEqual(len(handler_storage['requests']), 1)
+        self.assertEqual(len(self.connection.channels[0].basic_acks), 1)
+        self.assertEqual(len(self.connection.channels[0].basic_rejects), 3)
+
+        # Last reject should be a requeue
+        self.assertEqual(self.connection.channels[0].basic_rejects[-1]['requeue'], True)
+
+        # Decode errors should not result in a requeue
+        def callback(request):
+            raise DecodeError("psuedo decode error")
+
+        self.service.handle(platform_pb2.GET, 4)(callback)
+
+        self.assertEqual(len(handler_storage['requests']), 1)
+        self.service.handle_callback(self.connection.channels[0], MockMethod("%d_%d" % (platform_pb2.GET, 4, )), None, request.SerializeToString())
+        self.assertEqual(len(handler_storage['requests']), 1)
+        self.assertEqual(len(self.connection.channels[0].basic_acks), 1)
+        self.assertEqual(len(self.connection.channels[0].basic_rejects), 4)
+
+        # Last reject should be a requeue
+        self.assertEqual(self.connection.channels[0].basic_rejects[-1]['requeue'], False)
 
     def test_run(self):
         # Running a service without any handlers should raise an exception

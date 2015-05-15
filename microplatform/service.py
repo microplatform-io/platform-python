@@ -1,5 +1,13 @@
+from .connection import get_default_connection
 from google.protobuf.message import DecodeError
+from .publisher import AmqpPublisher
+from .subscriber import AmqpSubscriber
 import platform_pb2
+
+def get_default_service(queue_name):
+    connection = get_default_connection()
+
+    return Service(AmqpPublisher(connection), AmqpSubscriber(connection, queue_name))
 
 class Service(object):
     class NoHandlersDefined(Exception):
@@ -33,17 +41,18 @@ class Service(object):
     def handle_callback(self, ch, method, properties, body):
         print "received message: %s" % (method, )
         if method.routing_key not in self.handlers:
-            return
+            return ch.basic_reject(delivery_tag=method.delivery_tag, requeue=True)
 
         # TODO(bmoyles0117): Might want to copy the request every time to make immutable
         try:
             request = platform_pb2.Request().FromString(body)
-        except DecodeError:
-            ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
-            return
 
-        # Invoke every handler that matches the routing key
-        [handler(request) for handler in self.handlers[method.routing_key]]
+            # Invoke every handler that matches the routing key
+            [handler(request) for handler in self.handlers[method.routing_key]]
+        except DecodeError:
+            return ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
+        except Exception:
+            return ch.basic_reject(delivery_tag=method.delivery_tag, requeue=True)
 
         ch.basic_ack(delivery_tag=method.delivery_tag, multiple=True)
 
