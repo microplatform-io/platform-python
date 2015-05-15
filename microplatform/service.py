@@ -40,6 +40,7 @@ class Service(object):
 
     def handle_callback(self, ch, method, properties, body):
         print "received message: %s" % (method, )
+        
         if method.routing_key not in self.handlers:
             return ch.basic_reject(delivery_tag=method.delivery_tag, requeue=True)
 
@@ -49,9 +50,13 @@ class Service(object):
 
             # Invoke every handler that matches the routing key
             [handler(request) for handler in self.handlers[method.routing_key]]
-        except DecodeError:
+        except DecodeError, e:
+            print "decode error, failing permanently: %s" % (e, )
+
             return ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
-        except Exception:
+        except Exception, e:
+            print "generic error, requeuing: %s" % (e, )
+
             return ch.basic_reject(delivery_tag=method.delivery_tag, requeue=True)
 
         ch.basic_ack(delivery_tag=method.delivery_tag, multiple=True)

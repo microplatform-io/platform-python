@@ -7,6 +7,15 @@ import microplatform
 connection = microplatform.get_default_connection()
 publisher = microplatform.AmqpPublisher(connection)
 
-routing_key = '%d_%d' % (microplatform.GET, microplatform.DOCUMENTATION_LIST, )
+documentation_list = microplatform.DocumentationList(
+    documentations=[
+        microplatform.Documentation(description="microservice 1"),
+        microplatform.Documentation(description="microservice 2"),
+    ]
+)
 
-publisher.publish(routing_key, microplatform.Request(body="123").SerializeToString())
+request = microplatform.Request(
+    body    = documentation_list.SerializeToString()
+)
+
+publisher.publish('%d_%d' % (microplatform.GET, microplatform.DOCUMENTATION_LIST, ), request.SerializeToString())
