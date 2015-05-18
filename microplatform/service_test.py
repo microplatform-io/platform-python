@@ -4,7 +4,6 @@ import unittest
 
 from google.protobuf.message import DecodeError
 from .publisher import AmqpPublisher
-from .response import Response
 from .service import Service
 from .subscriber import AmqpSubscriber
 
@@ -37,12 +36,12 @@ class ServiceTestCase(unittest.TestCase):
         self.assertEqual(self.service.handlers, {})
 
     def test_handle(self):
-        handler_storage = {'requests': []}
+        handler_storage = {'routed_messages': []}
 
         # Let's just pseudo-wrap a temporary function
         @self.service.handle(platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST)
-        def handler_func(request):
-            handler_storage['requests'].append(request)
+        def handler_func(routed_message):
+            handler_storage['routed_messages'].append(routed_message)
 
         # After adding the handler decorator, we should see the bind count go up
         self.assertEqual(len(self.connection.channels), 1)
@@ -57,21 +56,21 @@ class ServiceTestCase(unittest.TestCase):
         })
 
         # Let's make sure calling the function still works
-        self.assertEqual(len(handler_storage['requests']), 0)
+        self.assertEqual(len(handler_storage['routed_messages']), 0)
         handler_func(None)
-        self.assertEqual(len(handler_storage['requests']), 1)
+        self.assertEqual(len(handler_storage['routed_messages']), 1)
 
     def test_handle_callback_unregistered(self):
         routing_key = '%d_%d' % (platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST, )
 
-        request = platform_pb2.Request(
+        routed_message = platform_pb2.RoutedMessage(
             method      = platform_pb2.GET,
             resource    = platform_pb2.DOCUMENTATION_LIST,
             body        = 'hello'
         )
 
         # An initial callback that has not been registered should not trigger the function
-        self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, request.SerializeToString())
+        self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, routed_message.SerializeToString())
         self.assertEqual(len(self.connection.channels[0].basic_acks), 0)
         self.assertEqual(len(self.connection.channels[0].basic_rejects), 1)
         self.assertEqual(len(self.connection.channels), 1)
@@ -79,22 +78,22 @@ class ServiceTestCase(unittest.TestCase):
     def test_handle_callback_registered(self):
         routing_key = '%d_%d' % (platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST, )
 
-        handler_storage = {'requests': []}
+        handler_storage = {'routed_messages': []}
 
-        request = platform_pb2.Request(
+        routed_message = platform_pb2.RoutedMessage(
             method      = platform_pb2.GET,
             resource    = platform_pb2.DOCUMENTATION_LIST,
             body        = 'hello'
         )
 
-        def callback(request):
-            handler_storage['requests'].append(request)
+        def callback(routed_message):
+            handler_storage['routed_messages'].append(routed_message)
 
         self.service.handle(platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST)(callback)
 
-        self.assertEqual(len(handler_storage['requests']), 0)
-        self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, request.SerializeToString())
-        self.assertEqual(len(handler_storage['requests']), 1)
+        self.assertEqual(len(handler_storage['routed_messages']), 0)
+        self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, routed_message.SerializeToString())
+        self.assertEqual(len(handler_storage['routed_messages']), 1)
         self.assertEqual(len(self.connection.channels[0].basic_acks), 1)
         self.assertEqual(len(self.connection.channels[0].basic_rejects), 0)
         self.assertEqual(len(self.connection.channels), 1)
@@ -102,7 +101,7 @@ class ServiceTestCase(unittest.TestCase):
     def test_handle_callback_invalid_payload(self):
         routing_key = '%d_%d' % (platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST, )
 
-        request = platform_pb2.Request(
+        routed_message = platform_pb2.RoutedMessage(
             method      = platform_pb2.GET,
             resource    = platform_pb2.DOCUMENTATION_LIST,
             body        = 'hello'
@@ -116,18 +115,18 @@ class ServiceTestCase(unittest.TestCase):
     def test_handle_callback_exception(self):
         routing_key = '%d_%d' % (platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST, )
 
-        request = platform_pb2.Request(
+        routed_message = platform_pb2.RoutedMessage(
             method      = platform_pb2.GET,
             resource    = platform_pb2.DOCUMENTATION_LIST,
             body        = 'hello'
         )
 
-        def callback(request):
+        def callback(routed_message):
             raise Exception("throwing exception")
 
         self.service.handle(platform_pb2.GET, 3)(callback)
 
-        self.service.handle_callback(self.connection.channels[0], MockMethod("%d_%d" % (platform_pb2.GET, 3, )), None, request.SerializeToString())
+        self.service.handle_callback(self.connection.channels[0], MockMethod("%d_%d" % (platform_pb2.GET, 3, )), None, routed_message.SerializeToString())
         self.assertEqual(len(self.connection.channels[0].basic_acks), 0)
         self.assertEqual(len(self.connection.channels[0].basic_rejects), 1)
         self.assertEqual(len(self.connection.channels), 1)
@@ -138,18 +137,18 @@ class ServiceTestCase(unittest.TestCase):
     def test_handle_callback_decode_error(self):
         routing_key = '%d_4' % (platform_pb2.GET, )
 
-        request = platform_pb2.Request(
+        routed_message = platform_pb2.RoutedMessage(
             method      = platform_pb2.GET,
             resource    = platform_pb2.DOCUMENTATION_LIST,
             body        = 'hello'
         )
 
-        def callback(request):
+        def callback(routed_message):
             raise DecodeError("psuedo decode error")
 
         self.service.handle(platform_pb2.GET, 4)(callback)
 
-        self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, request.SerializeToString())
+        self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, routed_message.SerializeToString())
         self.assertEqual(len(self.connection.channels[0].basic_acks), 0)
         self.assertEqual(len(self.connection.channels[0].basic_rejects), 1)
         self.assertEqual(len(self.connection.channels), 1)
@@ -159,34 +158,47 @@ class ServiceTestCase(unittest.TestCase):
 
     def test_handle_callback_with_platform_response(self):
         routing_key = '%d_4' % (platform_pb2.GET, )
+        message_id = 'abc'
+        reply_topic = 'def'
 
-        request = platform_pb2.Request(
+        routed_message = platform_pb2.RoutedMessage(
+            id          = message_id,
+            reply_topic = reply_topic,
             method      = platform_pb2.GET,
             resource    = platform_pb2.DOCUMENTATION_LIST,
             body        = 'hello'
         )
 
-        def callback(request):
-            return Response(platform_pb2.REPLY, platform_pb2.DOCUMENTATION_LIST, platform_pb2.DocumentationList(
-                documentations=[platform_pb2.Documentation(description='microservice 1')]
-            ))
+        def callback(routed_message):
+            return platform_pb2.RoutedMessage(
+                method      = platform_pb2.REPLY, 
+                resource    = platform_pb2.DOCUMENTATION_LIST, 
+                body        = platform_pb2.DocumentationList(
+                    documentations=[platform_pb2.Documentation(description='microservice 1')]
+                ).SerializeToString()
+            )
 
         self.service.handle(platform_pb2.GET, 4)(callback)
 
-        self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, request.SerializeToString())
+        self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, routed_message.SerializeToString())
         self.assertEqual(len(self.connection.channels[0].basic_acks), 1)
         self.assertEqual(len(self.connection.channels[0].basic_rejects), 0)
         # The publish should have resulted in an extra channel
         self.assertEqual(len(self.connection.channels), 2)
         self.assertEqual(len(self.connection.channels[1].publishes), 1)
 
-        body = platform_pb2.DocumentationList(
-            documentations=[platform_pb2.Documentation(description='microservice 1')]
+        body = platform_pb2.RoutedMessage(
+            id          = message_id,
+            method      = platform_pb2.REPLY,
+            resource    = platform_pb2.DOCUMENTATION_LIST,
+            body        = platform_pb2.DocumentationList(
+                documentations=[platform_pb2.Documentation(description='microservice 1')]
+            ).SerializeToString()
         ).SerializeToString()
 
         self.assertEqual(self.connection.channels[1].publishes[0], {
             'exchange'      : 'amq.topic',
-            'routing_key'   : '%d_%d' % (platform_pb2.REPLY, platform_pb2.DOCUMENTATION_LIST, ),
+            'routing_key'   : reply_topic,
             'body'          : body
         })
 
@@ -195,7 +207,7 @@ class ServiceTestCase(unittest.TestCase):
         with self.assertRaises(Service.NoHandlersDefined):
             self.service.run()
 
-        self.service.handle(platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST)(lambda request: request)
+        self.service.handle(platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST)(lambda routed_message: routed_message)
         self.assertEqual(len(self.connection.channels), 1)
         self.assertEqual(len(self.connection.channels[0].queues), 1)
         self.assertEqual(len(self.connection.channels[0].binds), 1)

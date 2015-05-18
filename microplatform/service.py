@@ -44,16 +44,18 @@ class Service(object):
         if method.routing_key not in self.handlers:
             return ch.basic_reject(delivery_tag=method.delivery_tag, requeue=True)
 
-        # TODO(bmoyles0117): Might want to copy the request every time to make immutable
+        # TODO(bmoyles0117): Might want to copy the routed message every time to make immutable
         try:
-            request = platform_pb2.Request().FromString(body)
+            routed_message = platform_pb2.RoutedMessage().FromString(body)
 
             # Invoke every handler that matches the routing key
             for handler in self.handlers[method.routing_key]:
-                response = handler(request)
+                response = handler(routed_message)
 
-                if hasattr(response, 'method') and hasattr(response, 'resource') and hasattr(response, 'protobuf'):
-                    self.publisher.publish('%d_%d' % (response.method, response.resource, ), response.protobuf.SerializeToString())
+                if isinstance(response, platform_pb2.RoutedMessage):
+                    response.id = routed_message.id
+
+                    self.publisher.publish(routed_message.reply_topic, response.SerializeToString())
 
         except DecodeError, e:
             print "decode error, failing permanently: %s" % (e, )
