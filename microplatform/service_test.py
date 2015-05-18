@@ -4,6 +4,7 @@ import unittest
 
 from google.protobuf.message import DecodeError
 from .publisher import AmqpPublisher
+from .response import Response
 from .service import Service
 from .subscriber import AmqpSubscriber
 
@@ -73,6 +74,7 @@ class ServiceTestCase(unittest.TestCase):
         self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, request.SerializeToString())
         self.assertEqual(len(self.connection.channels[0].basic_acks), 0)
         self.assertEqual(len(self.connection.channels[0].basic_rejects), 1)
+        self.assertEqual(len(self.connection.channels), 1)
 
     def test_handle_callback_registered(self):
         routing_key = '%d_%d' % (platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST, )
@@ -95,6 +97,7 @@ class ServiceTestCase(unittest.TestCase):
         self.assertEqual(len(handler_storage['requests']), 1)
         self.assertEqual(len(self.connection.channels[0].basic_acks), 1)
         self.assertEqual(len(self.connection.channels[0].basic_rejects), 0)
+        self.assertEqual(len(self.connection.channels), 1)
 
     def test_handle_callback_invalid_payload(self):
         routing_key = '%d_%d' % (platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST, )
@@ -108,6 +111,7 @@ class ServiceTestCase(unittest.TestCase):
         self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')
         self.assertEqual(len(self.connection.channels[0].basic_acks), 0)
         self.assertEqual(len(self.connection.channels[0].basic_rejects), 1)
+        self.assertEqual(len(self.connection.channels), 1)
 
     def test_handle_callback_exception(self):
         routing_key = '%d_%d' % (platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST, )
@@ -126,6 +130,7 @@ class ServiceTestCase(unittest.TestCase):
         self.service.handle_callback(self.connection.channels[0], MockMethod("%d_%d" % (platform_pb2.GET, 3, )), None, request.SerializeToString())
         self.assertEqual(len(self.connection.channels[0].basic_acks), 0)
         self.assertEqual(len(self.connection.channels[0].basic_rejects), 1)
+        self.assertEqual(len(self.connection.channels), 1)
 
         # Last reject should be a requeue
         self.assertEqual(self.connection.channels[0].basic_rejects[-1]['requeue'], True)
@@ -147,9 +152,43 @@ class ServiceTestCase(unittest.TestCase):
         self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, request.SerializeToString())
         self.assertEqual(len(self.connection.channels[0].basic_acks), 0)
         self.assertEqual(len(self.connection.channels[0].basic_rejects), 1)
+        self.assertEqual(len(self.connection.channels), 1)
 
         # Last reject should be a requeue
         self.assertEqual(self.connection.channels[0].basic_rejects[-1]['requeue'], False)
+
+    def test_handle_callback_with_platform_response(self):
+        routing_key = '%d_4' % (platform_pb2.GET, )
+
+        request = platform_pb2.Request(
+            method      = platform_pb2.GET,
+            resource    = platform_pb2.DOCUMENTATION_LIST,
+            body        = 'hello'
+        )
+
+        def callback(request):
+            return Response(platform_pb2.REPLY, platform_pb2.DOCUMENTATION_LIST, platform_pb2.DocumentationList(
+                documentations=[platform_pb2.Documentation(description='microservice 1')]
+            ))
+
+        self.service.handle(platform_pb2.GET, 4)(callback)
+
+        self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, request.SerializeToString())
+        self.assertEqual(len(self.connection.channels[0].basic_acks), 1)
+        self.assertEqual(len(self.connection.channels[0].basic_rejects), 0)
+        # The publish should have resulted in an extra channel
+        self.assertEqual(len(self.connection.channels), 2)
+        self.assertEqual(len(self.connection.channels[1].publishes), 1)
+
+        body = platform_pb2.DocumentationList(
+            documentations=[platform_pb2.Documentation(description='microservice 1')]
+        ).SerializeToString()
+
+        self.assertEqual(self.connection.channels[1].publishes[0], {
+            'exchange'      : 'amq.topic',
+            'routing_key'   : '%d_%d' % (platform_pb2.REPLY, platform_pb2.DOCUMENTATION_LIST, ),
+            'body'          : body
+        })
 
     def test_run(self):
         # Running a service without any handlers should raise an exception

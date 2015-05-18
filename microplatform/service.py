@@ -49,7 +49,12 @@ class Service(object):
             request = platform_pb2.Request().FromString(body)
 
             # Invoke every handler that matches the routing key
-            [handler(request) for handler in self.handlers[method.routing_key]]
+            for handler in self.handlers[method.routing_key]:
+                response = handler(request)
+
+                if hasattr(response, 'method') and hasattr(response, 'resource') and hasattr(response, 'protobuf'):
+                    self.publisher.publish('%d_%d' % (response.method, response.resource, ), response.protobuf.SerializeToString())
+
         except DecodeError, e:
             print "decode error, failing permanently: %s" % (e, )
 
