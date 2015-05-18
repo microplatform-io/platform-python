@@ -8,6 +8,6 @@ def get_documentation(request):
 
     print "DOCUMENTATION LIST: %s" % (documentation_list, )
 
-    return microplatform.REPLY, microplatform.DOCUMENTATION_LIST, documentation_list
+    return microplatform.Response(microplatform.REPLY, microplatform.DOCUMENTATION_LIST, documentation_list)
 
 service.run()
