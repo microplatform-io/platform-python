@@ -60,7 +60,21 @@ class ServiceTestCase(unittest.TestCase):
         handler_func(None)
         self.assertEqual(len(handler_storage['requests']), 1)
 
-    def test_handle_callback(self):
+    def test_handle_callback_unregistered(self):
+        routing_key = '%d_%d' % (platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST, )
+
+        request = platform_pb2.Request(
+            method      = platform_pb2.GET,
+            resource    = platform_pb2.DOCUMENTATION_LIST,
+            body        = 'hello'
+        )
+
+        # An initial callback that has not been registered should not trigger the function
+        self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, request.SerializeToString())
+        self.assertEqual(len(self.connection.channels[0].basic_acks), 0)
+        self.assertEqual(len(self.connection.channels[0].basic_rejects), 1)
+
+    def test_handle_callback_registered(self):
         routing_key = '%d_%d' % (platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST, )
 
         handler_storage = {'requests': []}
@@ -71,55 +85,68 @@ class ServiceTestCase(unittest.TestCase):
             body        = 'hello'
         )
 
-        # An initial callback that has not been registered should not trigger the function
+        def callback(request):
+            handler_storage['requests'].append(request)
+
+        self.service.handle(platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST)(callback)
+
         self.assertEqual(len(handler_storage['requests']), 0)
         self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, request.SerializeToString())
-        self.assertEqual(len(handler_storage['requests']), 0)
+        self.assertEqual(len(handler_storage['requests']), 1)
+        self.assertEqual(len(self.connection.channels[0].basic_acks), 1)
+        self.assertEqual(len(self.connection.channels[0].basic_rejects), 0)
+
+    def test_handle_callback_invalid_payload(self):
+        routing_key = '%d_%d' % (platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST, )
+
+        request = platform_pb2.Request(
+            method      = platform_pb2.GET,
+            resource    = platform_pb2.DOCUMENTATION_LIST,
+            body        = 'hello'
+        )
+
+        self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')
         self.assertEqual(len(self.connection.channels[0].basic_acks), 0)
         self.assertEqual(len(self.connection.channels[0].basic_rejects), 1)
 
-        # Now let's register the handler, and call it again
-        self.service.handle(platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST)(lambda request: handler_storage['requests'].append(request))
+    def test_handle_callback_exception(self):
+        routing_key = '%d_%d' % (platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST, )
 
-        self.assertEqual(len(handler_storage['requests']), 0)
-        self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, request.SerializeToString())
-        self.assertEqual(len(handler_storage['requests']), 1)
-        self.assertEqual(len(self.connection.channels[0].basic_acks), 1)
-        self.assertEqual(len(self.connection.channels[0].basic_rejects), 1)
+        request = platform_pb2.Request(
+            method      = platform_pb2.GET,
+            resource    = platform_pb2.DOCUMENTATION_LIST,
+            body        = 'hello'
+        )
 
-        # Running the handle callback with a bad payload should result in a reject
-        self.assertEqual(len(handler_storage['requests']), 1)
-        self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')
-        self.assertEqual(len(handler_storage['requests']), 1)
-        self.assertEqual(len(self.connection.channels[0].basic_acks), 1)
-        self.assertEqual(len(self.connection.channels[0].basic_rejects), 2)
-
-        # A callback that raises an exception should result in a reject with a requeue
         def callback(request):
             raise Exception("throwing exception")
 
         self.service.handle(platform_pb2.GET, 3)(callback)
 
-        self.assertEqual(len(handler_storage['requests']), 1)
         self.service.handle_callback(self.connection.channels[0], MockMethod("%d_%d" % (platform_pb2.GET, 3, )), None, request.SerializeToString())
-        self.assertEqual(len(handler_storage['requests']), 1)
-        self.assertEqual(len(self.connection.channels[0].basic_acks), 1)
-        self.assertEqual(len(self.connection.channels[0].basic_rejects), 3)
+        self.assertEqual(len(self.connection.channels[0].basic_acks), 0)
+        self.assertEqual(len(self.connection.channels[0].basic_rejects), 1)
 
         # Last reject should be a requeue
         self.assertEqual(self.connection.channels[0].basic_rejects[-1]['requeue'], True)
 
-        # Decode errors should not result in a requeue
+    def test_handle_callback_decode_error(self):
+        routing_key = '%d_4' % (platform_pb2.GET, )
+
+        request = platform_pb2.Request(
+            method      = platform_pb2.GET,
+            resource    = platform_pb2.DOCUMENTATION_LIST,
+            body        = 'hello'
+        )
+
         def callback(request):
             raise DecodeError("psuedo decode error")
 
         self.service.handle(platform_pb2.GET, 4)(callback)
 
-        self.assertEqual(len(handler_storage['requests']), 1)
-        self.service.handle_callback(self.connection.channels[0], MockMethod("%d_%d" % (platform_pb2.GET, 4, )), None, request.SerializeToString())
-        self.assertEqual(len(handler_storage['requests']), 1)
-        self.assertEqual(len(self.connection.channels[0].basic_acks), 1)
-        self.assertEqual(len(self.connection.channels[0].basic_rejects), 4)
+        self.service.handle_callback(self.connection.channels[0], MockMethod(routing_key), None, request.SerializeToString())
+        self.assertEqual(len(self.connection.channels[0].basic_acks), 0)
+        self.assertEqual(len(self.connection.channels[0].basic_rejects), 1)
 
         # Last reject should be a requeue
         self.assertEqual(self.connection.channels[0].basic_rejects[-1]['requeue'], False)
