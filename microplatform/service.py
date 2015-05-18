@@ -1,11 +1,11 @@
-from .connection import get_default_connection
+from .connection import get_amqp_connection_from_env
 from google.protobuf.message import DecodeError
 from .publisher import AmqpPublisher
 from .subscriber import AmqpSubscriber
 import platform_pb2
 
-def get_default_service(queue_name):
-    connection = get_default_connection()
+def get_standard_service(queue_name):
+    connection = get_amqp_connection_from_env()
 
     return Service(AmqpPublisher(connection), AmqpSubscriber(connection, queue_name))
 

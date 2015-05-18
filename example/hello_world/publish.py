@@ -4,7 +4,7 @@ sys.path.append(os.path.dirname(__file__) + '/../../')
 
 import microplatform
 
-connection = microplatform.get_default_connection()
+connection = microplatform.get_amqp_connection_from_env()
 publisher = microplatform.AmqpPublisher(connection)
 
 documentation_list = microplatform.DocumentationList(

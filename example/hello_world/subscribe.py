@@ -1,6 +1,6 @@
 import microplatform
 
-service = microplatform.get_default_service('documentation-list-get')
+service = microplatform.get_standard_service('documentation-list-get')
 
 @service.handle(microplatform.GET, microplatform.DOCUMENTATION_LIST)
 def get_documentation(request):

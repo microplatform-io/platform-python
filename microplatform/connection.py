@@ -14,7 +14,7 @@ class AmqpConnection(object):
     def channel(self):
         return self.connection.channel()
 
-def get_default_connection():
+def get_amqp_connection_from_env():
     return AmqpConnection(
         host        = os.environ.get('RABBITMQ_PORT_5672_TCP_ADDR', '127.0.0.1'),
         port        = os.environ.get('RABBITMQ_PORT_5672_TCP_PORT', 5672),
