@@ -62,9 +62,14 @@ class Service(object):
 
             return ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
         except Exception, e:
-            print "generic error, requeuing: %s" % (e, )
+            if method.redelivered:
+                print "generic error, already redelivered, rejecting: %s" % (e, )
 
-            return ch.basic_reject(delivery_tag=method.delivery_tag, requeue=True)
+                return ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
+            else:
+                print "generic error, requeuing: %s" % (e, )
+
+                return ch.basic_reject(delivery_tag=method.delivery_tag, requeue=True)
 
         ch.basic_ack(delivery_tag=method.delivery_tag, multiple=True)
 
