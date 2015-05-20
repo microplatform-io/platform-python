@@ -1,3 +1,4 @@
+from .decorators_test import *
 from .publisher_test import *
 from .service_test import *
 from .subscriber_test import *
