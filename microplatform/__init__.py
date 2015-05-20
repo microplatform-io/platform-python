@@ -7,7 +7,7 @@ from .service import Service, get_standard_service
 from .subscriber import AmqpSubscriber
 
 def basic_event(organization, method, resource, payload):
-    return microplatform.Event(
+    return Event(
         organization    = organization,
         method          = method,
         resource        = resource,
