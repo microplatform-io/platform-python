@@ -58,7 +58,7 @@ class StandardRouter(object):
 
         payload = routed_message.SerializeToString()
 
-        self.publisher.publish('%d_%d' % (routed_message.method, routed_message.resource, ), body)
+        self.publisher.publish('%d_%d' % (routed_message.method, routed_message.resource, ), payload)
 
         try:
             return self.pending_requests[routed_message.id].get(block=True, timeout=timeout)
