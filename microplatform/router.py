@@ -56,12 +56,16 @@ class StandardRouter(object):
 
         # print "ROUTING MESSAGE: %s" % (routed_message, )
 
-        self.publisher.publish('%d_%d' % (routed_message.method, routed_message.resource, ), routed_message.SerializeToString())
+        payload = routed_message.SerializeToString()
+
+        self.publisher.publish('%d_%d' % (routed_message.method, routed_message.resource, ), body)
 
         try:
             return self.pending_requests[routed_message.id].get(block=True, timeout=timeout)
 
         except Empty:
+            self.publisher.publish('request.timeout', payload)
+
             return platform_pb2.RoutedMessage(
                 method      = platform_pb2.REPLY,
                 resource    = platform_pb2.ERROR,
