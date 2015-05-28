@@ -6,6 +6,8 @@ from .publisher import AmqpPublisher
 from .service import Service, get_standard_service
 from .subscriber import AmqpSubscriber
 
+ORGANIZATION = 'platform'
+
 def basic_event(organization, method, resource, payload):
     return Event(
         organization    = organization,
