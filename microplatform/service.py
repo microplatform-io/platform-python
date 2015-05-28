@@ -3,6 +3,7 @@ from google.protobuf.message import DecodeError
 from .publisher import AmqpPublisher
 from .subscriber import AmqpSubscriber
 import platform_pb2
+import traceback
 
 def get_standard_service(queue_name):
     connection = get_amqp_connection_from_env()
@@ -63,11 +64,11 @@ class Service(object):
             return ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
         except Exception, e:
             if method.redelivered:
-                print "generic error, already redelivered, rejecting: %s" % (e, )
+                print "generic error, already redelivered, rejecting: %s\n%s" % (e, traceback.format_exc(e), )
 
                 return ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
             else:
-                print "generic error, requeuing: %s" % (e, )
+                print "generic error, requeuing: %s\n%s" % (e, traceback.format_exc(e), )
 
                 return ch.basic_reject(delivery_tag=method.delivery_tag, requeue=True)
 
