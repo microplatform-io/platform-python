@@ -5,10 +5,10 @@ class Publisher(object):
 class AmqpPublisher(Publisher):
     def __init__(self, connection):
         self.connection = connection
+        self.channel = self.connection.channel()
 
     def publish(self, topic, body):
-        channel = self.connection.channel()
-        channel.basic_publish(
+        self.channel.basic_publish(
             exchange    = 'amq.topic', 
             routing_key = topic, 
             body        = body
