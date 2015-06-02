@@ -11,7 +11,7 @@ class AmqpSubscriber(Subscriber):
         self.subscriptions = []
 
     def subscribe(self, topic, callback):
-        print "amqp subscriber: subscribed to %s with %s" % (topic, callback, )
+        print "[amqp-subscriber]: subscribed to %s with %s" % (topic, callback, )
 
         self.subscriptions.append((topic, callback, ))
 

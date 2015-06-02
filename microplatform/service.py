@@ -23,8 +23,6 @@ class Service(object):
         def callback(ch, method, properties, body):
             return self.handle_callback(ch, method, properties, body)
 
-        print "subscribing to: %d_%d" % (method, resource, )
-
         def decorator(f):
             topic = '%d_%d' % (method, resource, )
 
@@ -56,7 +54,7 @@ class Service(object):
                 if isinstance(response, platform_pb2.RoutedMessage):
                     response.id = routed_message.id
 
-                    self.publisher.publish(routed_message.reply_topic, response.SerializeToString())
+                    self.publisher.publish(routed_message.reply_topic, response.SerializeToString(), mandatory=True)
 
         except DecodeError, e:
             print "decode error, failing permanently: %s" % (e, )

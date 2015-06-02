@@ -26,6 +26,8 @@ class StandardRouter(object):
             try:
                 routed_message = platform_pb2.RoutedMessage().FromString(body)
 
+                print "[standard-router] routed message: %s" % (routed_message, )
+
                 if routed_message.id in self.pending_requests:
                     self.pending_requests[routed_message.id].put(routed_message)
 
@@ -48,7 +50,7 @@ class StandardRouter(object):
         t.daemon = True
         t.start()
 
-    def route(self, routed_message, timeout = 2):
+    def route(self, routed_message, timeout = None):
         routed_message.id = str(uuid.uuid4())
         routed_message.reply_topic = self.topic
 
@@ -61,7 +63,7 @@ class StandardRouter(object):
         self.publisher.publish('%d_%d' % (routed_message.method, routed_message.resource, ), payload)
 
         try:
-            return self.pending_requests[routed_message.id].get(block=True, timeout=timeout)
+            return self.pending_requests[routed_message.id].get(block=True, timeout=timeout or 2)
 
         except Empty:
             self.publisher.publish('request.timeout', payload)
