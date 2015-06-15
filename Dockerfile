@@ -6,6 +6,7 @@ RUN apt-get install -y python-pip
 RUN apt-get clean all
 RUN pip install protobuf==2.6.1
 RUN pip install pika==0.9.8
+RUN pip install kombu==3.0.26
 
 ADD . /platform-python
 WORKDIR /platform-python

@@ -2,10 +2,10 @@ from .connection import get_amqp_connection_from_env
 from .decorators import extract_request
 from google.protobuf.message import DecodeError
 from .platform_pb2 import *
-from .publisher import AmqpPublisher
+# from .publisher import AmqpPublisher
 from .router import StandardRouter, get_standard_router
 from .service import Service, get_standard_service
-from .subscriber import AmqpSubscriber
+# from .subscriber import AmqpSubscriber
 
 ORGANIZATION = 'platform'
 
