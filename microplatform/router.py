@@ -1,6 +1,5 @@
 from .connection import get_amqp_connection_from_env
 from google.protobuf.message import DecodeError
-# from .publisher import AmqpPublisher
 from Queue import Queue, Empty
 from .subscriber import KombuSubscriber
 from .subscriber import PikaSubscriber
@@ -9,10 +8,12 @@ from threading import Thread
 import platform_pb2
 import uuid
 
+
 def get_standard_router():
     connection = get_amqp_connection_from_env()
 
     return StandardRouter(connection.get_publisher(), connection.get_subscriber('router-' + str(uuid.uuid4())))
+
 
 class StandardRouter(object):
     def __init__(self, publisher, subscriber):

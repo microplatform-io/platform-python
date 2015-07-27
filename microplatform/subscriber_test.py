@@ -1,8 +1,8 @@
 import amqptest
-import platform_pb2
 import unittest
 
 from .subscriber import AmqpSubscriber
+
 
 class AmqpSubscriberTestCase(unittest.TestCase):
     def setUp(self):
@@ -16,7 +16,7 @@ class AmqpSubscriberTestCase(unittest.TestCase):
         self.assertEqual(len(self.connection.channels[0].consumes), 0)
 
     def test_subscribe(self):
-        subscriber_storage = {'callbacks':[]}
+        subscriber_storage = {'callbacks': []}
 
         def callback(**kwargs):
             subscriber_storage['callbacks'].append(kwargs)
@@ -31,7 +31,7 @@ class AmqpSubscriberTestCase(unittest.TestCase):
         self.assertEqual(len(self.connection.channels[0].queues), 1)
         self.assertEqual(len(self.connection.channels[0].binds), 1)
         self.assertEqual(len(self.connection.channels[0].consumes), 1)
-        
+
         self.assertEqual(self.connection.channels[0].queues, [{
             'queue'         : self.queue_name,
             'durable'       : False,
@@ -64,7 +64,7 @@ class AmqpSubscriberTestCase(unittest.TestCase):
             'routing_key'   : 'first',
             'exchange'      : 'amq.topic',
             'queue'         : self.queue_name
-        },{
+        }, {
             'routing_key'   : 'second',
             'exchange'      : 'amq.topic',
             'queue'         : self.queue_name

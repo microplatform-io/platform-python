@@ -7,10 +7,12 @@ from .publisher import AmqpPublisher
 from .service import Service
 from .subscriber import AmqpSubscriber
 
+
 class MockMethod(object):
     def __init__(self, routing_key):
         self.routing_key = routing_key
         self.delivery_tag = 1
+
 
 class ServiceTestCase(unittest.TestCase):
     def setUp(self):
@@ -23,7 +25,7 @@ class ServiceTestCase(unittest.TestCase):
         self.assertEqual(len(self.connection.channels), 1)
         self.assertEqual(len(self.connection.channels[0].queues), 1)
         self.assertEqual(len(self.connection.channels[0].binds), 0)
-        
+
         # Creating the service should leave everything as it was before
         self.service = Service(self.publisher, self.subscriber)
         self.assertEqual(self.service.publisher, self.publisher)
@@ -101,7 +103,7 @@ class ServiceTestCase(unittest.TestCase):
     def test_handle_callback_invalid_payload(self):
         routing_key = '%d_%d' % (platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST, )
 
-        routed_message = platform_pb2.RoutedMessage(
+        platform_pb2.RoutedMessage(
             method      = platform_pb2.GET,
             resource    = platform_pb2.DOCUMENTATION_LIST,
             body        = 'hello'
@@ -113,8 +115,6 @@ class ServiceTestCase(unittest.TestCase):
         self.assertEqual(len(self.connection.channels), 1)
 
     def test_handle_callback_exception(self):
-        routing_key = '%d_%d' % (platform_pb2.GET, platform_pb2.DOCUMENTATION_LIST, )
-
         routed_message = platform_pb2.RoutedMessage(
             method      = platform_pb2.GET,
             resource    = platform_pb2.DOCUMENTATION_LIST,
@@ -171,8 +171,8 @@ class ServiceTestCase(unittest.TestCase):
 
         def callback(routed_message):
             return platform_pb2.RoutedMessage(
-                method      = platform_pb2.REPLY, 
-                resource    = platform_pb2.DOCUMENTATION_LIST, 
+                method      = platform_pb2.REPLY,
+                resource    = platform_pb2.DOCUMENTATION_LIST,
                 body        = platform_pb2.DocumentationList(
                     documentations=[platform_pb2.Documentation(description='microservice 1')]
                 ).SerializeToString()

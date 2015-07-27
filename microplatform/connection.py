@@ -9,6 +9,7 @@ from .publisher import PikaPublisher
 from .subscriber import KombuSubscriber
 from .subscriber import PikaSubscriber
 
+
 class KombuConnectionManager(object):
     def __init__(self, host, port, user, password):
         self.connection_params = {
@@ -63,6 +64,7 @@ class KombuConnectionManager(object):
         for event_handler in self.event_handlers.get(event, []):
             event_handler()
 
+
 class PikaConnectionManager(object):
     def __init__(self, host, port, user, password):
         self.connection_params = pika.ConnectionParameters(
@@ -114,6 +116,7 @@ class PikaConnectionManager(object):
     def trigger(self, event):
         for event_handler in self.event_handlers.get(event, []):
             event_handler()
+
 
 def get_amqp_connection_from_env():
     return KombuConnectionManager(

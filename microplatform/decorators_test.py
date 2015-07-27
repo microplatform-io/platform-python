@@ -2,10 +2,9 @@ import unittest
 
 from .decorators import extract_request
 from google.protobuf.message import DecodeError
-from .platform_pb2 import ERROR
-from .platform_pb2 import REPLY
 from .platform_pb2 import Request
 from .platform_pb2 import RoutedMessage
+
 
 class DecoratorsTestCase(unittest.TestCase):
     def test_extract_request_invalid(self):

@@ -1,8 +1,8 @@
 import amqptest
-import platform_pb2
 import unittest
 
 from .publisher import AmqpPublisher
+
 
 class AmqpPublisherTestCase(unittest.TestCase):
     def setUp(self):
@@ -17,7 +17,7 @@ class AmqpPublisherTestCase(unittest.TestCase):
         self.assertEqual(len(self.connection.channels), 1)
 
         channel = self.connection.channels[-1]
-        
+
         self.assertEqual(channel.publishes, [{
             'routing_key'   : 'testing',
             'exchange'      : 'amq.topic',

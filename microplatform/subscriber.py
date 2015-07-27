@@ -8,12 +8,15 @@ import logging
 
 logging.getLogger().addHandler(logging.StreamHandler())
 
+
 class Subscriber(object):
     def subscribe(self, topic, body):
         pass
 
+
 class KombuException(Exception):
     pass
+
 
 class KombuWorker(ConsumerMixin):
     def __init__(self, connection, queues, subscriptions):
@@ -30,6 +33,7 @@ class KombuWorker(ConsumerMixin):
 
     def on_connection_error(self, exc, interval):
         raise KombuException("Our connection has expired, let's bubble it up: %s" % (exc, ))
+
 
 class KombuSubscriber(Subscriber):
     def __init__(self, connection_manager, queue_name):
@@ -72,6 +76,7 @@ class KombuSubscriber(Subscriber):
                 print "[kombu-subscriber]: connection or channel has been closed, reconnecting: %s, %s" % (e, traceback.format_exc(e), )
 
                 self.connection_manager.reconnect()
+
 
 class PikaSubscriber(Subscriber):
     def __init__(self, connection_manager, queue_name):

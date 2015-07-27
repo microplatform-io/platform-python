@@ -11,6 +11,7 @@ class MockConnection(object):
     def close(self):
         self.closed = True
 
+
 class MockChannel(object):
     def __init__(self, connection):
         self.connection = connection

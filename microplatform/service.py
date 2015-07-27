@@ -5,10 +5,12 @@ from .subscriber import PikaSubscriber
 import platform_pb2
 import traceback
 
+
 def get_standard_service(queue_name):
     connection_manager = get_amqp_connection_from_env()
 
     return Service(connection_manager.get_publisher(), connection_manager.get_subscriber(queue_name))
+
 
 class Service(object):
     class NoHandlersDefined(Exception):
@@ -25,7 +27,7 @@ class Service(object):
         if isinstance(self.subscriber, PikaSubscriber):
             def callback(ch, method, properties, body):
                 print "received message: %s" % (method, )
-                
+
                 if method.routing_key not in self.handlers:
                     return ch.basic_reject(delivery_tag=method.delivery_tag, requeue=True)
 
@@ -95,7 +97,7 @@ class Service(object):
         if isinstance(self.subscriber, PikaSubscriber):
             def callback(ch, method, properties, body):
                 print "received message: %s" % (method, )
-                
+
                 if method.routing_key not in self.handlers:
                     return ch.basic_reject(delivery_tag=method.delivery_tag, requeue=True)
 

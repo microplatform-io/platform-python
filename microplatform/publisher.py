@@ -1,9 +1,11 @@
 import kombu
 import pika.exceptions
 
+
 class Publisher(object):
     def publish(self, topic, body):
         pass
+
 
 class KombuPublisher(Publisher):
     def __init__(self, connection_manager):
@@ -18,7 +20,7 @@ class KombuPublisher(Publisher):
         # Try a delivery twice, the connection will attempt multiple reconnects automatically
         for i in xrange(2):
             print "[amqp-publisher] publishing {topic:%s, mandatory: %s}" % (topic, mandatory, )
-            
+
             try:
                 result = self.producer.publish(body, routing_key=topic, content_encoding='binary')
 
@@ -39,6 +41,7 @@ class KombuPublisher(Publisher):
             exchange    = kombu.Exchange('amq.topic', type='topic')
         )
 
+
 class PikaPublisher(Publisher):
     def __init__(self, connection_manager):
         self.connection_manager = connection_manager
@@ -53,11 +56,11 @@ class PikaPublisher(Publisher):
         # Try a delivery twice, the connection will attempt multiple reconnects automatically
         for i in xrange(2):
             print "[amqp-publisher] publishing {topic:%s, mandatory: %s}" % (topic, mandatory, )
-            
+
             try:
                 result = self.channel.basic_publish(
-                    exchange    = 'amq.topic', 
-                    routing_key = topic, 
+                    exchange    = 'amq.topic',
+                    routing_key = topic,
                     body        = body,
                     mandatory   = mandatory
                 )
