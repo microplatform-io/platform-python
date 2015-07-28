@@ -5,14 +5,24 @@ from .subscriber import KombuSubscriber
 from .subscriber import PikaSubscriber
 from threading import Thread
 
+import os
 import platform_pb2
 import uuid
 
 
-def get_standard_router():
+def get_standard_router(service_name = ''):
     connection = get_amqp_connection_from_env()
 
-    return StandardRouter(connection.get_publisher(), connection.get_subscriber('router-' + str(uuid.uuid4())))
+    router_uuid = str(uuid.uuid4())
+
+    service_name = service_name or os.environ.get('SERVICE_NAME')
+
+    if service_name:
+        subscriber_name = 'router-%s-%s' % (service_name, router_uuid, )
+    else:
+        subscriber_name = 'router-%s' % (router_uuid, )
+
+    return StandardRouter(connection.get_publisher(), connection.get_subscriber(subscriber_name))
 
 
 class StandardRouter(object):
