@@ -21,6 +21,9 @@ class KombuConnectionManager(object):
 
         self.event_handlers = {}
 
+        self.connection = None
+        self.connection_pool = None
+
         self.reconnect()
 
     def channel(self):
@@ -43,11 +46,25 @@ class KombuConnectionManager(object):
         self.event_handlers[event].append(handler)
 
     def reconnect(self):
-        print "[kombu-connection-manager] attempting to create a connection: %s" % (self.connection_params, )
-
         for i in xrange(50):
+            print "[kombu-connection-manager] attempting to create a connection: %s" % (self.connection_params, )
+
             try:
+                if self.connection:
+                    self.connection.close()
+            except:
+                # Ignore it if I can't close a closed socket
+                pass
+
+            try:
+                self.connection_params['transport'] = 'pyamqp'
+                self.connection_params['transport_options'] = {'heartbeat': 30}
                 self.connection = kombu.Connection(**self.connection_params)
+
+                # Unset the errors so that Kombu doesn't try to take control
+                self.connection.connection_errors = ()
+                self.connection.channel_errors = ()
+
                 self.connection_pool = self.connection.Pool(limit=2, preload=2)
 
                 self.trigger('connect')
