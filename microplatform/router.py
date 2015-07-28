@@ -65,11 +65,17 @@ class StandardRouter(object):
                     if routed_message.id in self.pending_requests:
                         self.pending_requests[routed_message.id].put(routed_message)
 
+                    message.ack()
+
                     return True
                 except DecodeError, e:
+                    message.reject()
+
                     print "[standard-router] failed to decode routed message: %s" % (e, )
 
                 except Exception, e:
+                    message.reject()
+
                     print "[standard-router] general processing error: %s" % (e, )
 
                 return False
