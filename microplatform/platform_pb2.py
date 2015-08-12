@@ -19,7 +19,7 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='platform.proto',
   package='platform',
-  serialized_pb=_b('\n\x0eplatform.proto\x12\x08platform\"9\n\x07Request\x12\x0e\n\x06method\x18\x03 \x01(\x05\x12\x10\n\x08resource\x18\x02 \x01(\x05\x12\x0c\n\x04\x62ody\x18\x01 \x01(\x0c\"`\n\rRoutedMessage\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06method\x18\x02 \x01(\x05\x12\x10\n\x08resource\x18\x03 \x01(\x05\x12\x13\n\x0breply_topic\x18\x04 \x01(\t\x12\x0c\n\x04\x62ody\x18\x05 \x01(\x0c\"\xc1\x01\n\x0c\x43onsumeEvent\x12\x13\n\x0b\x64\x65scription\x18\x01 \x01(\t\x12\x1e\n\x05\x65vent\x18\x02 \x01(\x0b\x32\x0f.platform.Event\x12\"\n\tresponses\x18\x03 \x03(\x0b\x32\x0f.platform.Event\x12\x30\n\x0fpossible_errors\x18\x04 \x03(\x0b\x32\x17.platform.PossibleError\x12\x15\n\ris_deprecated\x18\x05 \x01(\x08\x12\x0f\n\x07version\x18\x06 \x01(\t\"T\n\rDocumentation\x12\x13\n\x0b\x64\x65scription\x18\x01 \x01(\t\x12.\n\x0e\x63onsume_events\x18\x02 \x03(\x0b\x32\x16.platform.ConsumeEvent\"D\n\x11\x44ocumentationList\x12/\n\x0e\x64ocumentations\x18\x01 \x03(\x0b\x32\x17.platform.Documentation\"\x18\n\x05\x45rror\x12\x0f\n\x07message\x18\x01 \x01(\t\"P\n\x05\x45vent\x12\x14\n\x0corganization\x18\x04 \x01(\t\x12\x0e\n\x06method\x18\x01 \x01(\t\x12\x10\n\x08resource\x18\x02 \x01(\t\x12\x0f\n\x07payload\x18\x03 \x01(\t\"3\n\rPossibleError\x12\r\n\x05\x65rror\x18\x01 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t*\x1c\n\x06Method\x12\t\n\x05REPLY\x10\x0e\x12\x07\n\x03GET\x10\x0f*F\n\x08Resource\x12\x13\n\rDOCUMENTATION\x10\xfd\xff\x03\x12\x18\n\x12\x44OCUMENTATION_LIST\x10\xfe\xff\x03\x12\x0b\n\x05\x45RROR\x10\xff\xff\x03')
+  serialized_pb=_b('\n\x0eplatform.proto\x12\x08platform\"M\n\x07Request\x12\x0c\n\x04\x62ody\x18\x01 \x01(\x0c\x12\x10\n\x08resource\x18\x02 \x01(\x05\x12\x0e\n\x06method\x18\x03 \x01(\x05\x12\x12\n\nip_address\x18\x04 \x01(\t\"`\n\rRoutedMessage\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0e\n\x06method\x18\x02 \x01(\x05\x12\x10\n\x08resource\x18\x03 \x01(\x05\x12\x13\n\x0breply_topic\x18\x04 \x01(\t\x12\x0c\n\x04\x62ody\x18\x05 \x01(\x0c\"\xc1\x01\n\x0c\x43onsumeEvent\x12\x13\n\x0b\x64\x65scription\x18\x01 \x01(\t\x12\x1e\n\x05\x65vent\x18\x02 \x01(\x0b\x32\x0f.platform.Event\x12\"\n\tresponses\x18\x03 \x03(\x0b\x32\x0f.platform.Event\x12\x30\n\x0fpossible_errors\x18\x04 \x03(\x0b\x32\x17.platform.PossibleError\x12\x15\n\ris_deprecated\x18\x05 \x01(\x08\x12\x0f\n\x07version\x18\x06 \x01(\t\"T\n\rDocumentation\x12\x13\n\x0b\x64\x65scription\x18\x01 \x01(\t\x12.\n\x0e\x63onsume_events\x18\x02 \x03(\x0b\x32\x16.platform.ConsumeEvent\"D\n\x11\x44ocumentationList\x12/\n\x0e\x64ocumentations\x18\x01 \x03(\x0b\x32\x17.platform.Documentation\"\x18\n\x05\x45rror\x12\x0f\n\x07message\x18\x01 \x01(\t\"P\n\x05\x45vent\x12\x14\n\x0corganization\x18\x04 \x01(\t\x12\x0e\n\x06method\x18\x01 \x01(\t\x12\x10\n\x08resource\x18\x02 \x01(\t\x12\x0f\n\x07payload\x18\x03 \x01(\t\"\x9e\x02\n\x0cRouterConfig\x12:\n\rprotocol_type\x18\x01 \x01(\x0e\x32#.platform.RouterConfig.ProtocolType\x12\x0c\n\x04host\x18\x02 \x01(\t\x12\x0c\n\x04port\x18\x03 \x01(\t\x12\x36\n\x0brouter_type\x18\x04 \x01(\x0e\x32!.platform.RouterConfig.RouterType\"=\n\nRouterType\x12\x19\n\x15ROUTER_TYPE_WEBSOCKET\x10\x01\x12\x14\n\x10ROUTER_TYPE_GRPC\x10\x02\"?\n\x0cProtocolType\x12\x16\n\x12PROTOCOL_TYPE_HTTP\x10\x01\x12\x17\n\x13PROTOCOL_TYPE_HTTPS\x10\x02\"B\n\x10RouterConfigList\x12.\n\x0erouter_configs\x18\x01 \x03(\x0b\x32\x16.platform.RouterConfig\"3\n\rPossibleError\x12\r\n\x05\x65rror\x18\x01 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t*\x1c\n\x06Method\x12\t\n\x05REPLY\x10\x0e\x12\x07\n\x03GET\x10\x0f*F\n\x08Resource\x12\x13\n\rDOCUMENTATION\x10\xfd\xff\x03\x12\x18\n\x12\x44OCUMENTATION_LIST\x10\xfe\xff\x03\x12\x0b\n\x05\x45RROR\x10\xff\xff\x03')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -40,8 +40,8 @@ _METHOD = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=698,
-  serialized_end=726,
+  serialized_start=1075,
+  serialized_end=1103,
 )
 _sym_db.RegisterEnumDescriptor(_METHOD)
 
@@ -67,8 +67,8 @@ _RESOURCE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=728,
-  serialized_end=798,
+  serialized_start=1105,
+  serialized_end=1175,
 )
 _sym_db.RegisterEnumDescriptor(_RESOURCE)
 
@@ -80,6 +80,50 @@ DOCUMENTATION_LIST = 65534
 ERROR = 65535
 
 
+_ROUTERCONFIG_ROUTERTYPE = _descriptor.EnumDescriptor(
+  name='RouterType',
+  full_name='platform.RouterConfig.RouterType',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='ROUTER_TYPE_WEBSOCKET', index=0, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='ROUTER_TYPE_GRPC', index=1, number=2,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=826,
+  serialized_end=887,
+)
+_sym_db.RegisterEnumDescriptor(_ROUTERCONFIG_ROUTERTYPE)
+
+_ROUTERCONFIG_PROTOCOLTYPE = _descriptor.EnumDescriptor(
+  name='ProtocolType',
+  full_name='platform.RouterConfig.ProtocolType',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='PROTOCOL_TYPE_HTTP', index=0, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='PROTOCOL_TYPE_HTTPS', index=1, number=2,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=889,
+  serialized_end=952,
+)
+_sym_db.RegisterEnumDescriptor(_ROUTERCONFIG_PROTOCOLTYPE)
+
 
 _REQUEST = _descriptor.Descriptor(
   name='Request',
@@ -89,9 +133,9 @@ _REQUEST = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='method', full_name='platform.Request.method', index=0,
-      number=3, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
+      name='body', full_name='platform.Request.body', index=0,
+      number=1, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -103,9 +147,16 @@ _REQUEST = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='body', full_name='platform.Request.body', index=2,
-      number=1, type=12, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b(""),
+      name='method', full_name='platform.Request.method', index=2,
+      number=3, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='ip_address', full_name='platform.Request.ip_address', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -121,7 +172,7 @@ _REQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=28,
-  serialized_end=85,
+  serialized_end=105,
 )
 
 
@@ -178,8 +229,8 @@ _ROUTEDMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=87,
-  serialized_end=183,
+  serialized_start=107,
+  serialized_end=203,
 )
 
 
@@ -243,8 +294,8 @@ _CONSUMEEVENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=186,
-  serialized_end=379,
+  serialized_start=206,
+  serialized_end=399,
 )
 
 
@@ -280,8 +331,8 @@ _DOCUMENTATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=381,
-  serialized_end=465,
+  serialized_start=401,
+  serialized_end=485,
 )
 
 
@@ -310,8 +361,8 @@ _DOCUMENTATIONLIST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=467,
-  serialized_end=535,
+  serialized_start=487,
+  serialized_end=555,
 )
 
 
@@ -340,8 +391,8 @@ _ERROR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=537,
-  serialized_end=561,
+  serialized_start=557,
+  serialized_end=581,
 )
 
 
@@ -391,8 +442,91 @@ _EVENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=563,
-  serialized_end=643,
+  serialized_start=583,
+  serialized_end=663,
+)
+
+
+_ROUTERCONFIG = _descriptor.Descriptor(
+  name='RouterConfig',
+  full_name='platform.RouterConfig',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='protocol_type', full_name='platform.RouterConfig.protocol_type', index=0,
+      number=1, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=1,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='host', full_name='platform.RouterConfig.host', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='port', full_name='platform.RouterConfig.port', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='router_type', full_name='platform.RouterConfig.router_type', index=3,
+      number=4, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=1,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+    _ROUTERCONFIG_ROUTERTYPE,
+    _ROUTERCONFIG_PROTOCOLTYPE,
+  ],
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=666,
+  serialized_end=952,
+)
+
+
+_ROUTERCONFIGLIST = _descriptor.Descriptor(
+  name='RouterConfigList',
+  full_name='platform.RouterConfigList',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='router_configs', full_name='platform.RouterConfigList.router_configs', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=954,
+  serialized_end=1020,
 )
 
 
@@ -428,8 +562,8 @@ _POSSIBLEERROR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=645,
-  serialized_end=696,
+  serialized_start=1022,
+  serialized_end=1073,
 )
 
 _CONSUMEEVENT.fields_by_name['event'].message_type = _EVENT
@@ -437,6 +571,11 @@ _CONSUMEEVENT.fields_by_name['responses'].message_type = _EVENT
 _CONSUMEEVENT.fields_by_name['possible_errors'].message_type = _POSSIBLEERROR
 _DOCUMENTATION.fields_by_name['consume_events'].message_type = _CONSUMEEVENT
 _DOCUMENTATIONLIST.fields_by_name['documentations'].message_type = _DOCUMENTATION
+_ROUTERCONFIG.fields_by_name['protocol_type'].enum_type = _ROUTERCONFIG_PROTOCOLTYPE
+_ROUTERCONFIG.fields_by_name['router_type'].enum_type = _ROUTERCONFIG_ROUTERTYPE
+_ROUTERCONFIG_ROUTERTYPE.containing_type = _ROUTERCONFIG
+_ROUTERCONFIG_PROTOCOLTYPE.containing_type = _ROUTERCONFIG
+_ROUTERCONFIGLIST.fields_by_name['router_configs'].message_type = _ROUTERCONFIG
 DESCRIPTOR.message_types_by_name['Request'] = _REQUEST
 DESCRIPTOR.message_types_by_name['RoutedMessage'] = _ROUTEDMESSAGE
 DESCRIPTOR.message_types_by_name['ConsumeEvent'] = _CONSUMEEVENT
@@ -444,6 +583,8 @@ DESCRIPTOR.message_types_by_name['Documentation'] = _DOCUMENTATION
 DESCRIPTOR.message_types_by_name['DocumentationList'] = _DOCUMENTATIONLIST
 DESCRIPTOR.message_types_by_name['Error'] = _ERROR
 DESCRIPTOR.message_types_by_name['Event'] = _EVENT
+DESCRIPTOR.message_types_by_name['RouterConfig'] = _ROUTERCONFIG
+DESCRIPTOR.message_types_by_name['RouterConfigList'] = _ROUTERCONFIGLIST
 DESCRIPTOR.message_types_by_name['PossibleError'] = _POSSIBLEERROR
 DESCRIPTOR.enum_types_by_name['Method'] = _METHOD
 DESCRIPTOR.enum_types_by_name['Resource'] = _RESOURCE
@@ -496,6 +637,20 @@ Event = _reflection.GeneratedProtocolMessageType('Event', (_message.Message,), d
   # @@protoc_insertion_point(class_scope:platform.Event)
   ))
 _sym_db.RegisterMessage(Event)
+
+RouterConfig = _reflection.GeneratedProtocolMessageType('RouterConfig', (_message.Message,), dict(
+  DESCRIPTOR = _ROUTERCONFIG,
+  __module__ = 'platform_pb2'
+  # @@protoc_insertion_point(class_scope:platform.RouterConfig)
+  ))
+_sym_db.RegisterMessage(RouterConfig)
+
+RouterConfigList = _reflection.GeneratedProtocolMessageType('RouterConfigList', (_message.Message,), dict(
+  DESCRIPTOR = _ROUTERCONFIGLIST,
+  __module__ = 'platform_pb2'
+  # @@protoc_insertion_point(class_scope:platform.RouterConfigList)
+  ))
+_sym_db.RegisterMessage(RouterConfigList)
 
 PossibleError = _reflection.GeneratedProtocolMessageType('PossibleError', (_message.Message,), dict(
   DESCRIPTOR = _POSSIBLEERROR,
