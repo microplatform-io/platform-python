@@ -58,8 +58,11 @@ class KombuSubscriber(Subscriber):
 
                 print "[kombu-subscriber]: subscribing topics"
 
+                for topic in self.subscriptions.keys():
+                    self.topic = topic
+
                 queue = kombu.Queue(
-                    name        = self.queue_name,
+                    name        = self.queue_name + "-" + self.topic,
                     channel     = channel,
                     durable     = False,
                     auto_delete = True
