@@ -59,17 +59,14 @@ class KombuSubscriber(Subscriber):
                 print "[kombu-subscriber]: subscribing topics"
 
                 for topic in self.subscriptions.keys():
-                    self.topic = topic
+                    queue = kombu.Queue(
+                        name        = self.queue_name + topic,
+                        channel     = channel,
+                        durable     = False,
+                        auto_delete = True
+                    )
+                    queue.declare()
 
-                queue = kombu.Queue(
-                    name        = self.queue_name + "-" + self.topic,
-                    channel     = channel,
-                    durable     = False,
-                    auto_delete = True
-                )
-                queue.declare()
-
-                for topic in self.subscriptions.keys():
                     queue.bind_to('amq.topic', topic)
 
                 worker = KombuWorker(self.connection_manager.connection, [queue], self.subscriptions)
