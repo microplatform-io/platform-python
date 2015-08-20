@@ -58,18 +58,19 @@ class KombuSubscriber(Subscriber):
 
                 print "[kombu-subscriber]: subscribing topics"
 
+                queues = [] # List of queues that will be passed when we declare worker
                 for topic in self.subscriptions.keys():
                     queue = kombu.Queue(
-                        name        = self.queue_name + topic,
+                        name        = self.queue_name + "-" + topic,
                         channel     = channel,
                         durable     = False,
                         auto_delete = True
                     )
                     queue.declare()
-
                     queue.bind_to('amq.topic', topic)
+                    queues.extend([queue])
 
-                worker = KombuWorker(self.connection_manager.connection, [queue], self.subscriptions)
+                worker = KombuWorker(self.connection_manager.connection, queues, self.subscriptions)
                 worker.run()
 
             except Exception, e:
