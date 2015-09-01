@@ -1,9 +1,8 @@
 from .connection import get_amqp_connection_from_env
 from google.protobuf.message import DecodeError
 from Queue import Queue, Empty
-from .subscriber import KombuSubscriber
-from .subscriber import PikaSubscriber
 from threading import Thread
+from urlparse import urlparse
 
 import os
 import platform_pb2
@@ -32,53 +31,31 @@ class StandardRouter(object):
         self.topic = str(uuid.uuid4())
         self.pending_requests = {}
 
-        if isinstance(subscriber, PikaSubscriber):
-            def callback(ch, method, properties, body):
-                print "[standard-router] received message: %s" % (method, )
+        def callback(body, message):
+            print "[standard-router] received message: %s" % (message, )
 
-                try:
-                    routed_message = platform_pb2.RoutedMessage().FromString(body)
+            try:
+                response = platform_pb2.Request().FromString(body)
 
-                    print "[standard-router] routed message: %s" % (routed_message, )
+                print "[standard-router] router response: %s" % (response, )
 
-                    if routed_message.id in self.pending_requests:
-                        self.pending_requests[routed_message.id].put(routed_message)
+                if response.uuid in self.pending_requests:
+                    self.pending_requests[response.uuid].put(response)
 
-                    return ch.basic_ack(delivery_tag=method.delivery_tag, multiple=True)
-                except DecodeError, e:
-                    print "[standard-router] failed to decode routed message: %s" % (e, )
+                message.ack()
 
-                    return ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
-                except Exception, e:
-                    print "[standard-router] general processing error: %s" % (e, )
+                return True
+            except DecodeError, e:
+                message.reject()
 
-                    return ch.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
-        elif isinstance(subscriber, KombuSubscriber):
-            def callback(body, message):
-                print "[standard-router] received message: %s" % (message, )
+                print "[standard-router] failed to decode router message: %s" % (e, )
 
-                try:
-                    routed_message = platform_pb2.RoutedMessage().FromString(body)
+            except Exception, e:
+                message.reject()
 
-                    print "[standard-router] routed message: %s" % (routed_message, )
+                print "[standard-router] general processing error: %s" % (e, )
 
-                    if routed_message.id in self.pending_requests:
-                        self.pending_requests[routed_message.id].put(routed_message)
-
-                    message.ack()
-
-                    return True
-                except DecodeError, e:
-                    message.reject()
-
-                    print "[standard-router] failed to decode routed message: %s" % (e, )
-
-                except Exception, e:
-                    message.reject()
-
-                    print "[standard-router] general processing error: %s" % (e, )
-
-                return False
+            return False
 
         self.subscriber.subscribe(self.topic, callback)
 
@@ -89,29 +66,36 @@ class StandardRouter(object):
         t.daemon = True
         t.start()
 
-    def route(self, routed_message, timeout = None):
-        routed_message.id = str(uuid.uuid4())
-        routed_message.reply_topic = self.topic
+    def route(self, request, timeout = None):
+        request.uuid = str(uuid.uuid4())
+        request.routing.route_from._values.append(platform_pb2.Route(uri=self.topic))
 
-        self.pending_requests[routed_message.id] = Queue()
+        self.pending_requests[request.uuid] = Queue()
 
-        # print "ROUTING MESSAGE: %s" % (routed_message, )
+        print "ROUTING REQUEST: %s" % (request, )
 
-        payload = routed_message.SerializeToString()
+        payload = request.SerializeToString()
 
-        self.publisher.publish('%d_%d' % (routed_message.method, routed_message.resource, ), payload)
+        parsed_uri = urlparse(request.routing.route_to[0].uri)
+
+        print "PARSED URI: %s" % (parsed_uri, )
+
+        self.publisher.publish(parsed_uri.path, payload)
 
         try:
-            return self.pending_requests[routed_message.id].get(block=True, timeout=timeout or 2)
+            return self.pending_requests[request.uuid].get(block=True, timeout=timeout or 2)
 
         except Empty:
             self.publisher.publish('request.timeout', payload)
 
-            return platform_pb2.RoutedMessage(
-                method      = platform_pb2.REPLY,
-                resource    = platform_pb2.ERROR,
-                body        = platform_pb2.Error(message="API Request has timed out").SerializeToString()
+            return platform_pb2.Request(
+                routing     = platform_pb2.Routing(
+                    route_from  = [platform_pb2.Route(uri=self.topic)],
+                    route_to    = [platform_pb2.Route(uri='resource:///platform/reply/error')] + request.routing.route_from._values[:-1]
+                ),
+                context     = request.context,
+                payload     = platform_pb2.Error(message="API Request has timed out").SerializeToString()
             )
 
         finally:
-            del self.pending_requests[routed_message.id]
+            del self.pending_requests[request.uuid]

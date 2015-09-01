@@ -7,8 +7,8 @@ setup(
     description         = 'Platform Python Core Library',
     author              = 'Bryan Moyles',
     author_email        = 'bmoy117@gmail.com',
-    version             = '0.0.4',
-    install_requires    = ['protobuf==2.6.1', 'pika==0.9.8'],
+    version             = '1.0.0',
+    install_requires    = ['protobuf==3.0.0a3', 'pika==0.9.8'],
     packages            = ['microplatform'],
     name                = 'Platform Python'
 )

@@ -1,5 +1,4 @@
 import kombu
-import pika.exceptions
 import traceback
 
 from kombu.mixins import ConsumerMixin
@@ -10,7 +9,7 @@ logging.getLogger().addHandler(logging.StreamHandler())
 
 
 class Subscriber(object):
-    def subscribe(self, topic, body):
+    def subscribe(self, topic, callback):
         pass
 
 
@@ -58,7 +57,7 @@ class KombuSubscriber(Subscriber):
 
                 print "[kombu-subscriber]: subscribing topics"
 
-                queues = [] # List of queues that will be passed when we declare worker
+                queues = []  # List of queues that will be passed when we declare worker
                 for topic in self.subscriptions.keys():
                     queue = kombu.Queue(
                         name        = self.queue_name + "-" + topic,
@@ -75,39 +74,5 @@ class KombuSubscriber(Subscriber):
 
             except Exception, e:
                 print "[kombu-subscriber]: connection or channel has been closed, reconnecting: %s, %s" % (e, traceback.format_exc(e), )
-
-                self.connection_manager.reconnect()
-
-
-class PikaSubscriber(Subscriber):
-    def __init__(self, connection_manager, queue_name):
-        self.connection_manager = connection_manager
-        self.queue_name = queue_name
-        self.subscriptions = []
-
-    def subscribe(self, topic, callback):
-        print "[pika-subscriber]: subscribed to %s with %s" % (topic, callback, )
-
-        self.subscriptions.append((topic, callback, ))
-
-    def run(self):
-        while True:
-            try:
-                print "[pika-subscriber]: generating channel and declaring queue"
-
-                channel = self.connection_manager.channel()
-                channel.queue_declare(queue=self.queue_name, durable=False, auto_delete=True)
-
-                print "[pika-subscriber]: subscribing topics and callbacks"
-
-                for topic, callback in self.subscriptions:
-                    channel.queue_bind(exchange='amq.topic', queue=self.queue_name, routing_key=topic)
-                    channel.basic_consume(consumer_callback=callback, queue=self.queue_name, no_ack=False)
-
-                print "[pika-subscriber]: consuming"
-
-                channel.start_consuming()
-            except (pika.exceptions.ConnectionClosed, pika.exceptions.ChannelClosed, pika.exceptions.AMQPConnectionError, ):
-                print "[pika-subscriber]: connection or channel has been closed, reconnecting"
 
                 self.connection_manager.reconnect()
